@@ -1,20 +1,20 @@
 package WebRequester
 
 import (
+	"io/ioutil"
 	"net/http"
 	"strings"
-	"io/ioutil"
 )
 
 type WebRequester struct {
-	HttpClient *http.Client
+	HttpClient    *http.Client
 	HttpTransport *http.Transport
 }
 
 // generates a new WebRequester
-func New() (*WebRequester) {
+func New() *WebRequester {
 	wr := &WebRequester{
-		HttpClient: &http.Client{},
+		HttpClient:    &http.Client{},
 		HttpTransport: &http.Transport{},
 	}
 

@@ -2,13 +2,14 @@ package WebWorker
 
 import "fmt"
 
+// Pool of workers channels that are registered with the dispatcher
 type Pool struct {
-	// A pool of workers channels that are registered with the dispatcher
-	WorkerChannel chan chan Job
+	WorkerChannel    chan chan Job
 	WorkerCollection []WebWorker
-	MaxWorkers int
+	MaxWorkers       int
 }
 
+// NewPool returns a new instance of Pool
 func NewPool(maxWorkers int) *Pool {
 	pool := make(chan chan Job, maxWorkers)
 
@@ -21,12 +22,13 @@ func NewPool(maxWorkers int) *Pool {
 	}
 
 	return &Pool{
-		WorkerChannel: pool,
+		WorkerChannel:    pool,
 		WorkerCollection: wrkCl,
-		MaxWorkers: maxWorkers,
+		MaxWorkers:       maxWorkers,
 	}
 }
 
+// QueueJob queues a job to be attempted
 func (pool *Pool) QueueJob(job Job) {
 	go func(job Job) {
 		// try to obtain a worker job channel that is available.
@@ -38,6 +40,7 @@ func (pool *Pool) QueueJob(job Job) {
 	}(job)
 }
 
+// ShutDown terminates Pool
 func (pool *Pool) ShutDown() (stat bool) {
 	for _, wrk := range pool.WorkerCollection {
 		wrk.Stop()
