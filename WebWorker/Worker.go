@@ -2,8 +2,6 @@ package WebWorker
 
 import (
 	"fmt"
-
-	"github.com/bolovsky/requester/WebRequest"
 )
 
 // WebWorker represents the worker that executes the job
@@ -27,7 +25,7 @@ func NewWorker(workerPool chan chan Job, workerID int) WebWorker {
 func (w WebWorker) Start() {
 	fmt.Println("starting worker")
 	go func() {
-		req := WebRequester.New()
+		req := NewRequester()
 
 		for {
 			// register the current worker into the worker queue.
@@ -35,7 +33,7 @@ func (w WebWorker) Start() {
 
 			select {
 			case job := <-w.JobChannel:
-				resp, err := req.PostJson(job.URL, job.Payload)
+				resp, err := req.PostJSON(job.URL, job.Payload)
 				if nil != err {
 					fmt.Println(err)
 				} else {
