@@ -13,8 +13,8 @@ type Server struct {
 	Type string
 }
 
-//New returns new server instance
-func New(host string, port string, connType string) (server *Server) {
+//NewServer returns new server instance
+func NewServer(host string, port string, connType string) (server *Server) {
 	return &Server{
 		Host: host,
 		Port: port,
@@ -23,8 +23,7 @@ func New(host string, port string, connType string) (server *Server) {
 }
 
 //Connect tests that we are inside
-func (server *Server) Connect() (inc net.Listener) {
-	fmt.Println("in test")
+func (server *Server) Connect(verbose bool) (inc net.Listener) {
 	inc, err := net.Listen(server.Type, server.Host+":"+server.Port)
 
 	if nil != err {
@@ -32,7 +31,9 @@ func (server *Server) Connect() (inc net.Listener) {
 		os.Exit(1)
 	}
 
-	fmt.Println("Listening on " + server.Host + ":" + server.Port)
+	if verbose {
+		fmt.Println("Listening on " + server.Host + ":" + server.Port)
+	}
 
 	return inc
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -22,23 +23,37 @@ const (
 )
 
 var pool *WebWorker.Pool
+var verbose *bool
+var responseChannel chan WebWorker.JobResponse
 
 func main() {
-	fmt.Printf("Starting Server...\n")
-
-	pool = WebWorker.NewPool(5)
-
+	setUp()
 	// do requests ad eternum or until interrupt
 	openSocketServer()
+	down()
+}
 
+func setUp() {
+	parseArgs()
+	printVerbose("Starting Server...\n")
+	responseChannel = make(chan WebWorker.JobResponse)
+	pool = WebWorker.NewPool(5, responseChannel)
+	go func() {
+		for {
+			v := <-responseChannel
+			printVerbose(fmt.Sprintf("%s From Worker %d", v.Response, v.WorkerID))
+		}
+	}()
+}
+
+func down() {
 	pool.ShutDown()
-
-	fmt.Printf("Stopping Server...\n")
+	printVerbose("Stopping Server...\n")
 }
 
 func openSocketServer() {
-	server := server.New(connHost, connPort, connType)
-	inc := server.Connect()
+	server := server.NewServer(connHost, connPort, connType)
+	inc := server.Connect(*verbose)
 
 	//make sure the listener closes when the application is closing
 	defer inc.Close()
@@ -46,7 +61,7 @@ func openSocketServer() {
 	for {
 		conn, err := inc.Accept()
 		if nil != err {
-			fmt.Println("Error accepting: ", err.Error())
+			printVerbose("Error accepting: " + err.Error())
 			os.Exit(1)
 		}
 
@@ -61,7 +76,7 @@ func handleMessageReceived(conn net.Conn) {
 	lenght, err := conn.Read(buf)
 
 	if err != nil {
-		fmt.Println("Error reading:", err.Error())
+		printVerbose("Error reading:" + err.Error())
 	}
 	//show what we got
 	if lenght > 0 {
@@ -77,4 +92,15 @@ func handleMessageReceived(conn net.Conn) {
 	conn.Write([]byte("Message received\n"))
 	// Close the connection when you're done with it.
 	conn.Close()
+}
+
+func parseArgs() {
+	verbose = flag.Bool("v", false, "Turns on verbosity")
+	flag.Parse()
+}
+
+func printVerbose(str string) {
+	if *verbose {
+		fmt.Printf(str)
+	}
 }

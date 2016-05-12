@@ -1,7 +1,5 @@
 package WebWorker
 
-import "fmt"
-
 // Pool of workers channels that are registered with the dispatcher
 type Pool struct {
 	WorkerChannel    chan chan Job
@@ -10,14 +8,13 @@ type Pool struct {
 }
 
 // NewPool returns a new instance of Pool
-func NewPool(maxWorkers int) *Pool {
+func NewPool(maxWorkers int, ResponseChannel chan JobResponse) *Pool {
 	pool := make(chan chan Job, maxWorkers)
 
-	fmt.Println("pool starting")
 	var wrkCl = make([]WebWorker, maxWorkers)
 
 	for i := 0; i < maxWorkers; i++ {
-		wrkCl[i] = NewWorker(pool, i)
+		wrkCl[i] = NewWorker(pool, ResponseChannel, i)
 		wrkCl[i].Start()
 	}
 
@@ -45,7 +42,6 @@ func (pool *Pool) ShutDown() (stat bool) {
 	for _, wrk := range pool.WorkerCollection {
 		wrk.Stop()
 	}
-	fmt.Println("pool stopped")
 
 	return true
 }
